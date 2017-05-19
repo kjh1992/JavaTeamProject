@@ -39,7 +39,7 @@ public class ClassViewer extends JFrame {
 		mainSplitPane.setDividerSize(5);
 		mainSplitPane.setDividerLocation(200);
 		mainSplitPane.setLeftComponent(subSplitPane); // 좌측에 트리 + 서브 뷰
-		mainSplitPane.setRightComponent(textPanel); // 우측에 텍스트 영역
+		mainSplitPane.setRightComponent(new JPanel()); // 우측에 빈 패널
 		
 		add(mainSplitPane, "Center");
 		
@@ -144,7 +144,7 @@ public class ClassViewer extends JFrame {
 	
 	// 텍스트 영역 패널 내부 클래스 정의
 	private class TextPanel extends JPanel {
-		JTextArea textArea = new JTextArea("test");
+		JTextArea textArea = new JTextArea();
 		
 		public TextPanel() {
 			setLayout(new BorderLayout());	
