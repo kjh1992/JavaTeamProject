@@ -101,14 +101,11 @@ public class Parser {
 			String type = null;
 			String name = null;
 			
-			strArr = define.split("[(]");
+			strArr = define.replaceAll("[(][)]", "(void)").split("[()]");
 			
-			String[] parameters = strArr[1].split("[), ]"); // 매개변수들을 쪼개서 매개변수 정보 객체에 넣는다.
+			String[] parameters = strArr[1].split("[, ]"); // 매개변수들을 쪼개서 매개변수 정보 객체에 넣는다.
 			for (String s : parameters) {
-				if (s == null)
-					parameterInfo.addParameter("void");
-				else
-					parameterInfo.addParameter(s);
+				parameterInfo.addParameter(s);
 			}
 			
 			String[] typeAndName = strArr[0].split(" "); // 타입과 이름을 쪼갠다.
@@ -141,19 +138,16 @@ public class Parser {
 		String method = classAndName[1];
 		
 		if (typeAndClass.equals(classTitle) || typeAndClass.split(" ")[1].equals(classTitle)) { // 해당 클래스이면
-			String[] strArr = method.split("[(]");
+			String[] strArr = method.replaceAll("[(][)]", "(void)").split("[()]");
 			
 			// 이름 추출
 			String name = strArr[0];
 			
 			// 파라미터 추출
-			String[] parameters = strArr[1].split("[,)]");
+			String[] parameters = strArr[1].split("[,]");
 			Method_ParameterInfo parameterInfo = new Method_ParameterInfo();
 			for (String s : parameters) {
-				if (s == null)
-					parameterInfo.addParameter("void");
-				else
-					parameterInfo.addParameter(s.split(" ")[0]);
+				parameterInfo.addParameter(s.trim().split(" ")[0]);
 			}
 			
 			// 이름과 파라미터가 일치하는 메소드에 바디 삽입

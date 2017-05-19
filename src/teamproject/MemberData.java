@@ -13,6 +13,22 @@ public class MemberData {
 		this.name = name;
 	}
 	
+	public String getName() {
+		return name;
+	}
+	
+	public String getType() {
+		return type;
+	}
+	
+	public String getAccess() {
+		return access;
+	}
+	
+	public ClassInfor getParentClass() {
+		return parentClass;
+	}
+	
 	public String toString() {
 		return name + " : " + type;
 	}

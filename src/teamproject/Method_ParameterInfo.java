@@ -15,14 +15,12 @@ public class Method_ParameterInfo {
 	
 	public String toString() {
 		String str = "";
-		if (!parameterList.isEmpty() && !parameterList.get(0).equals("void")) {
-			boolean isFirst = true;
+		if (!parameterList.get(0).equals("void")) {
 			for (String s : parameterList) {
-				if (isFirst) {
-					str = s;
-					isFirst = false;
+				if (str.equals("")) {
+					str += s;
 				} else
-					str = str + ", " + s;	
+					str += ", " + s;	
 			}
 		}
 		return str;
