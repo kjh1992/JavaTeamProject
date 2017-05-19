@@ -39,7 +39,7 @@ class StringToken {
 	public StringToken(String str) {
 		ReadFileData r = new ReadFileData();
 		source = r.readFile(str).toString();
-		StringTokenizer st = new StringTokenizer(source, " :;\n\t\r"); //
+		StringTokenizer st = new StringTokenizer(source, " :;\n\t\r");
 		
 		for(int i = 0; st.hasMoreTokens(); i++) {
 			token[i] = st.nextToken();

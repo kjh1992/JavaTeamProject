@@ -8,9 +8,9 @@ import javax.swing.event.*;
 import javax.swing.tree.DefaultMutableTreeNode;
 
 public class ClassViewer extends JFrame {
-	private static int WIDTH_SIZE = 700;
-	private static int HEIGHT_SIZE = 400; // 프레임 기본 사이즈 상수
-	private static Dimension MONITOR_SIZE = Toolkit.getDefaultToolkit().getScreenSize(); // 모니터 사이즈
+	private static final int WIDTH_SIZE = 700;
+	private static final int HEIGHT_SIZE = 400; // 프레임 기본 사이즈 상수
+	private static final Dimension MONITOR_SIZE = Toolkit.getDefaultToolkit().getScreenSize(); // 모니터 사이즈
 	
 	private JSplitPane mainSplitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
 	private JSplitPane subSplitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
@@ -74,7 +74,9 @@ public class ClassViewer extends JFrame {
 				
 				if (returnVal == JFileChooser.APPROVE_OPTION) {
 					File file = fileChooser.getSelectedFile();
-					// 파일 오픈 처리 코드 필요
+					Parser.openFile(file);
+					Parser.parse();
+					treePanel.update(Parser.theClass);
 				}
 				
 			} else if (o == saveItem) { // 메뉴 이벤트 : File - Save
@@ -93,9 +95,7 @@ public class ClassViewer extends JFrame {
 		
 		public TreePanel() {
 			setLayout(new BorderLayout());
-			
-			// 파싱을 통해 생성된 클래스 객체를 읽어서 노드를 생성해 rootNode에 추가하는 코드 필요
-			
+
 			tree.addTreeSelectionListener(this);
 			
 			add(tree);
@@ -109,13 +109,25 @@ public class ClassViewer extends JFrame {
 				// 트리에서 클래스를 눌렀을 경우
 				// 해당 클래스 객체에서 데이터를 읽어와 테이블을 생성하여 오른쪽 화면에 띄움
 			} else if (o instanceof MethodInfor) {
-				// 트리에서 메소드를 눌렀을 경우
-				// 해당 메소드 객체에서 바디를 읽어와 TextArea에 setText
-				// 좌측 하단 서브 뷰에 사용한 멤버 목록 띄움
+				textPanel.update((MethodInfor)o);
 			} else if (o instanceof MemberData) {
 				// 트리에서 멤버를 눌렀을 경우
 				// 해당 멤버 객체에서 데이터를 읽어와 테이블을 생성하여 오른쪽 화면에 띄움
 			}
+		}
+		
+		public void update(ClassInfor c) {
+			tree.removeAll();
+			rootNode.setUserObject(c);
+			for (MethodInfor m : c.methodList) {
+				DefaultMutableTreeNode childNode = new DefaultMutableTreeNode(m);
+				rootNode.add(childNode);
+			}
+			for (MemberData m : c.memberList) {
+				DefaultMutableTreeNode childNode = new DefaultMutableTreeNode(m);
+				rootNode.add(childNode);
+			}
+			repaint();
 		}
 	}
 	
@@ -124,8 +136,18 @@ public class ClassViewer extends JFrame {
 		JTextArea textArea = new JTextArea("test");
 		
 		public TextPanel() {
-			setLayout(new BorderLayout());			
+			setLayout(new BorderLayout());	
+			
+			textArea.setFont(new Font("Monospaced", Font.PLAIN, 14));
+			textArea.setTabSize(4);
+			
 			add(textArea);
+		}
+		
+		public void update(MethodInfor m) {
+			if (mainSplitPane.getRightComponent() == tablePanel)
+				mainSplitPane.setRightComponent(this);
+			textArea.setText(m.getBody());
 		}
 	}
 	
