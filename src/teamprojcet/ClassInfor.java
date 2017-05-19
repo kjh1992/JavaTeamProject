@@ -8,6 +8,4 @@ public class ClassInfor {
 	private String classTitle;	// 클래스 이름
 	private int num_of_method;	// 메소드 개수
 	private int num_of_member;	// 멤버 개수
-	int num;
-
 }
