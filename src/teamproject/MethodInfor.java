@@ -1,4 +1,4 @@
-package teamprojcet;
+package teamproject;
 
 public class MethodInfor {
 

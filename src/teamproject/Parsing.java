@@ -1,4 +1,4 @@
-package teamprojcet;
+package teamproject;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
