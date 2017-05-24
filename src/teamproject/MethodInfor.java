@@ -7,23 +7,27 @@ public class MethodInfor {
 	private String access;
 	private String type;
 	private String name;
-	private Method_ParameterInfo parameter;
 	private String body;
-	ArrayList<MemberData> memberList = new ArrayList<MemberData>();
+	private ArrayList<ParameterInfor> parameterList = new ArrayList<ParameterInfor>();
+	private ArrayList<MemberInfor> memberList = new ArrayList<MemberInfor>();
 	
-	public MethodInfor(ClassInfor parentClass, String access, String type, String name, Method_ParameterInfo parameter) {
-		this.parentClass = parentClass;
+	public MethodInfor(ClassInfor c, String access, String type, String name, ArrayList<ParameterInfor> parameterList) {
+		this.parentClass = c;
 		this.access = access;
 		this.type = type;
 		this.name = name;
-		this.parameter = parameter;
+		this.parameterList = parameterList;
 	}
 	
-	public void checkBody(String body) { // 메소드 객체의 바디를 확인하여 멤버 리스트를 다시 채움
+	public void addParameter(ParameterInfor p) {
+		parameterList.add(p);
+	}
+	
+	public void checkBody() { // 메소드 객체의 바디를 확인하여 멤버 리스트를 다시 채움
 		String[] bodySplit = body.split("[\\[\\](){}+\\-*/%=!;\\s]");
 		memberList.clear();
 		for (String s : bodySplit) {
-			for (MemberData m : Parser.theClass.memberList) {
+			for (MemberInfor m : parentClass.memberList) {
 				if (m.getName().equals(s) && !memberList.contains(m)) {
 					memberList.add(m);
 				}
@@ -47,16 +51,25 @@ public class MethodInfor {
 		return body;
 	}
 	
-	public Method_ParameterInfo getParameter() {
-		return parameter;
+	public ArrayList<ParameterInfor> getParameterList() {
+		return parameterList;
+	}
+	
+	public ArrayList<MemberInfor> getMemberList() {
+		return memberList;
 	}
 	
 	public void setBody(String body) {
 		this.body = body;
-		checkBody(body);
+		checkBody();
 	}
 	
 	public String toString() {
+		String parameter = "";
+		for (ParameterInfor p : parameterList) {
+			if (parameter.equals("")) parameter += p;
+			else parameter += ", " + p;
+		}
 		return name + "(" + parameter + ")";
 	}
 }

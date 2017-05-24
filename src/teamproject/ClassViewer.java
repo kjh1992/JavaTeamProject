@@ -3,15 +3,19 @@ package teamproject;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.File;
+import java.util.*;
+
 import javax.swing.*;
 import javax.swing.event.*;
 import javax.swing.table.DefaultTableModel;
-import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.*;
 
 public class ClassViewer extends JFrame {
 	private static final int WIDTH_SIZE = 700;
 	private static final int HEIGHT_SIZE = 400; // 프레임 기본 사이즈 상수
 	private static final Dimension MONITOR_SIZE = Toolkit.getDefaultToolkit().getScreenSize(); // 모니터 사이즈
+	
+	private static ArrayList<ClassInfor> classList = new ArrayList<ClassInfor>();
 	
 	private JSplitPane mainSplitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
 	private JSplitPane subSplitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
@@ -22,11 +26,15 @@ public class ClassViewer extends JFrame {
 	private TablePanel tablePanel = new TablePanel();
 	private SubPanel subPanel = new SubPanel();
 	
+	private JPanel titlePanel = new JPanel(new BorderLayout());
+	private JLabel label1 = new JLabel("C++ Class Viewer  Ver.1.0", JLabel.CENTER);
+	private JLabel label2 = new JLabel("by Joohong Kim, Hyoenjin Kim", JLabel.CENTER);
+
+	
 	public ClassViewer() {
 		setTitle("C++ Class Viewer");
-		setBounds((int)MONITOR_SIZE.getWidth() / 2 - WIDTH_SIZE / 2,
-				  (int)MONITOR_SIZE.getHeight() / 2 - HEIGHT_SIZE / 2,
-				  WIDTH_SIZE, HEIGHT_SIZE); // 화면 정중앙에 위치
+		setBounds((int)MONITOR_SIZE.getWidth() / 2 - WIDTH_SIZE / 2, (int)MONITOR_SIZE.getHeight() / 2 - HEIGHT_SIZE / 2,
+				WIDTH_SIZE, HEIGHT_SIZE); // 화면 정중앙에 위치
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		
 		add(menuBar, "North");
@@ -35,11 +43,16 @@ public class ClassViewer extends JFrame {
 		subSplitPane.setDividerLocation(225);
 		subSplitPane.setTopComponent(treePanel); // 좌측 상단에 트리
 		subSplitPane.setBottomComponent(subPanel); // 좌측 하단에 서브 뷰
+		subSplitPane.setResizeWeight(1);
 		
 		mainSplitPane.setDividerSize(5);
 		mainSplitPane.setDividerLocation(200);
 		mainSplitPane.setLeftComponent(subSplitPane); // 좌측에 트리 + 서브 뷰
-		mainSplitPane.setRightComponent(new JPanel()); // 우측에 빈 패널
+		label1.setFont(new Font("Serif", Font.BOLD, 36));
+		label2.setFont(new Font("Monospaced", Font.PLAIN, 20));
+		titlePanel.add(label1, "Center");
+		titlePanel.add(label2, "South");
+		mainSplitPane.setRightComponent(titlePanel); // 우측에 빈 패널
 		
 		add(mainSplitPane, "Center");
 		
@@ -72,17 +85,20 @@ public class ClassViewer extends JFrame {
 			
 			if (o == openItem) { // 메뉴 이벤트 : File - Open
 				int returnVal = fileChooser.showOpenDialog(this);
-				
 				if (returnVal == JFileChooser.APPROVE_OPTION) {
 					File file = fileChooser.getSelectedFile();
 					Parser.openFile(file);
+					classList.clear();
 					Parser.parse();
-					treePanel.update(Parser.theClass);
+					resetFrame();
+					treePanel.update();
 				}
-				
 			} else if (o == saveItem) { // 메뉴 이벤트 : File - Save
-				// 파일 저장 코드 필요
-				
+				int returnVal = fileChooser.showSaveDialog(this);
+				if (returnVal == JFileChooser.APPROVE_OPTION) {
+					File file = fileChooser.getSelectedFile();
+					Parser.saveFile(file);
+				}
 			} else if (o == exitItem) { // 메뉴 이벤트 : File - Exit
 				System.exit(0);
 			}
@@ -91,8 +107,9 @@ public class ClassViewer extends JFrame {
 	
 	// 트리 패널 내부 클래스 정의
 	private class TreePanel extends JPanel implements TreeSelectionListener  {
-		private DefaultMutableTreeNode rootNode = new DefaultMutableTreeNode("none");
-		private JTree tree = new JTree(rootNode);
+		private DefaultMutableTreeNode rootNode = new DefaultMutableTreeNode("root");
+		private DefaultTreeModel treeModel = new DefaultTreeModel(rootNode);
+		private JTree tree = new JTree(treeModel);
 		
 		public TreePanel() {
 			setLayout(new BorderLayout());
@@ -108,67 +125,92 @@ public class ClassViewer extends JFrame {
 			Object o = d.getUserObject();
 			
 			if (o instanceof ClassInfor) { // 클래스 노드를 클릭
+				subPanel.removeAll();
 				tablePanel.update((ClassInfor)o);
 				
 			} else if (o instanceof MethodInfor) { // 메소드 노드를 클릭
 				textPanel.update((MethodInfor)o);
+				subPanel.update((MethodInfor)o);
 				
-			} else if (o instanceof MemberData) { // 멤버 노드를 클릭
-				tablePanel.update((MemberData)o);
+			} else if (o instanceof MemberInfor) { // 멤버 노드를 클릭
+				subPanel.removeAll();
+				tablePanel.update((MemberInfor)o);
 			}
 		}
 		
-		public void update(ClassInfor c) {
+		public void update() {
 			// 트리 내용을 제거
-			tree.removeAll();
-			
-			// 인자로 전달된 클래스를 루트 노드로 설정
-			rootNode.setUserObject(c);
-			
-			// 해당 클래스에 속한 메소드들을 자식 노드로 추가
-			for (MethodInfor m : c.methodList) {
-				DefaultMutableTreeNode childNode = new DefaultMutableTreeNode(m);
-				rootNode.add(childNode);
-			}
-			
-			// 해당 클래스에 속한 멤버들을 자식 노드로 추가
-			for (MemberData m : c.memberList) {
-				DefaultMutableTreeNode childNode = new DefaultMutableTreeNode(m);
-				rootNode.add(childNode);
-			}
-			
-			// 루트 노드 보이게 설정
 			tree.setRootVisible(true);
+			rootNode.removeAllChildren();
+			tree.removeTreeSelectionListener(this);
+			
+			for (ClassInfor c : classList) {
+				DefaultMutableTreeNode classNode = new DefaultMutableTreeNode(c);
+				// 해당 클래스에 속한 메소드들을 자식 노드로 추가
+				for (MethodInfor m : c.methodList) {
+					DefaultMutableTreeNode childNode = new DefaultMutableTreeNode(m);
+					classNode.add(childNode);
+				}
+				
+				// 해당 클래스에 속한 멤버들을 자식 노드로 추가
+				for (MemberInfor m : c.memberList) {
+					DefaultMutableTreeNode childNode = new DefaultMutableTreeNode(m);
+					classNode.add(childNode);
+				}
+				rootNode.add(classNode);	
+			}
+			treeModel.reload();
+			tree.addTreeSelectionListener(this);
+			tree.expandRow(0);
+			tree.setRootVisible(false);
 		}
 	}
 	
 	// 텍스트 영역 패널 내부 클래스 정의
-	private class TextPanel extends JPanel {
-		JTextArea textArea = new JTextArea();
+	private class TextPanel extends JPanel implements DocumentListener {
+		Hashtable<MethodInfor, JScrollPane> hashtable = new Hashtable<MethodInfor, JScrollPane>();
+		MethodInfor currentMethod;
 		
 		public TextPanel() {
 			setLayout(new BorderLayout());	
-			
-			textArea.setFont(new Font("Monospaced", Font.PLAIN, 14));
-			textArea.setTabSize(4);
-			
-			add(new JScrollPane(textArea));
 		}
 		
 		public void update(MethodInfor m) {
+			if (!hashtable.containsKey(m)) {
+				JTextArea textArea = new JTextArea();
+				textArea.setFont(new Font("Monospaced", Font.PLAIN, 14));
+				textArea.setTabSize(4);
+				textArea.setText(m.getBody());
+				textArea.getDocument().addDocumentListener(this);
+				hashtable.put(m, new JScrollPane(textArea));
+			}
+			
 			// 텍스트 영역의 내용을 해당 메소드의 바디로 채움
-			textArea.setText(m.getBody());
+			removeAll();
+			currentMethod = m;
+			add(hashtable.get(currentMethod));
 			
 			// 사이즈를 유지한 채 우측 패널 변경
 			int tempDividerLocation = mainSplitPane.getDividerLocation();
 			mainSplitPane.setRightComponent(this);
 			mainSplitPane.setDividerLocation(tempDividerLocation);
 		}
+		
+		public void insertUpdate(DocumentEvent e) {
+			currentMethod.setBody(((JTextArea)hashtable.get(currentMethod).getViewport().getView()).getText());
+			subPanel.update(currentMethod);
+		}
+		
+		public void removeUpdate(DocumentEvent e) {
+			currentMethod.setBody(((JTextArea)hashtable.get(currentMethod).getViewport().getView()).getText());
+			subPanel.update(currentMethod);
+		}
+		
+		public void changedUpdate(DocumentEvent e) { }
 	}
 	
 	// 테이블 패널 내부 클래스 정의
 	private class TablePanel extends JPanel {
-		
 		String[] classAttributes = { "Name", "Type", "Access" };
 		String[] memberAttributes = { "Name", "Methods" };
 		DefaultTableModel classTableModel = new DefaultTableModel(classAttributes, 0);
@@ -176,9 +218,11 @@ public class ClassViewer extends JFrame {
 		JTable table = new JTable(classTableModel);
 		
 		public TablePanel() {
-			setLayout(new BorderLayout());	
+			setLayout(new BorderLayout());
+			table.setFillsViewportHeight(true);
 			
-			table.setFont(new Font("Monospaced", Font.PLAIN, 12));
+			table.setEnabled(false);
+			table.setFont(new Font(table.getFont().getFontName(), Font.PLAIN, 14));
 			
 			add(new JScrollPane(table));
 		}
@@ -189,14 +233,12 @@ public class ClassViewer extends JFrame {
 				classTableModel.removeRow(i);
 			
 			// 클래스에 속한 메소드들을 테이블에 추가
-			for (MethodInfor m : c.methodList) {
+			for (MethodInfor m : c.methodList)
 				classTableModel.addRow(new String[] { m.toString(), m.getType(), m.getAccess()});
-			}
 			
 			// 클래스에 속한 멤버들을 테이블에 추가
-			for (MemberData m : c.memberList) {
-				classTableModel.addRow(new String[] { m.toString(), m.getType(), m.getAccess()});
-			}
+			for (MemberInfor m : c.memberList)
+				classTableModel.addRow(new String[] { m.getName(), m.getType(), m.getAccess()});
 			
 			// 테이블 모델 변경
 			table.setModel(classTableModel);
@@ -207,7 +249,7 @@ public class ClassViewer extends JFrame {
 			mainSplitPane.setDividerLocation(tempDividerLocation);
 		}
 		
-		public void update(MemberData m) {
+		public void update(MemberInfor m) {
 			// 멤버 테이블 모델 내용 제거
 			for (int i = memberTableModel.getRowCount() - 1; i >= 0 ; i--)
 				memberTableModel.removeRow(i);
@@ -216,11 +258,9 @@ public class ClassViewer extends JFrame {
 			String methodUsing = "";
 			
 			for (MethodInfor method : m.getParentClass().methodList) {
-				if (method.memberList.contains(m)) {
-					if (methodUsing.equals(""))
-						methodUsing += method.toString();
-					else
-						methodUsing += ", " + method.toString();
+				if (method.getMemberList().contains(m)) {
+					if (methodUsing.equals("")) methodUsing += method.toString();
+					else methodUsing += ", " + method.toString();
 				}
 			}
 			
@@ -236,14 +276,60 @@ public class ClassViewer extends JFrame {
 			int tempDividerLocation = mainSplitPane.getDividerLocation();
 			mainSplitPane.setRightComponent(this);
 			mainSplitPane.setDividerLocation(tempDividerLocation);
-		}
-		
+		}	
 	}
 	
 	// 서브 뷰 패널 내부 클래스 정의 (좌측 하단 영역)
 	private class SubPanel extends JPanel {
+		JPanel usePanel = new JPanel();
+		JLabel label = new JLabel("Use", JLabel.CENTER);
+		JPanel memberPanel = new JPanel();
+		
 		public SubPanel() {
-			add(new JLabel("test"));
+			setLayout(new FlowLayout(FlowLayout.LEADING));
+			setBackground(Color.WHITE);
+			
+			memberPanel.setLayout(new GridLayout(0, 1));
+			memberPanel.setBackground(Color.WHITE);
+			memberPanel.setBorder(BorderFactory.createCompoundBorder(
+					BorderFactory.createLineBorder(Color.BLACK, 1, true),
+					BorderFactory.createEmptyBorder(3, 5, 3, 5))
+					);
+			
+			usePanel.setLayout(new BoxLayout(usePanel, BoxLayout.Y_AXIS));
+			usePanel.setBackground(Color.WHITE);
+			label.setAlignmentX(CENTER_ALIGNMENT);
+			usePanel.add(label);
+			usePanel.add(memberPanel);
+			
 		}
+		
+		public void update(MethodInfor method) {
+			memberPanel.removeAll();
+			ArrayList<MemberInfor> list = method.getMemberList();
+			if (list.isEmpty()) memberPanel.add(new JLabel("(none)", JLabel.CENTER));
+			else for (MemberInfor m : method.getMemberList()) memberPanel.add(new JLabel(m.getName(), JLabel.CENTER));
+			add(usePanel);
+			revalidate();
+		}		
+	}
+	
+	
+	// 클래스 관련 메소드들
+	public static void addClass(ClassInfor c) {
+		classList.add(c);
+	}
+	
+	public static ClassInfor getTheClass(String name) {
+		for (ClassInfor c : classList)
+			if (c.getName().equals(name)) return c;
+		return null;
+	}
+	
+	public void resetFrame() {
+		int tempDividerLocation = mainSplitPane.getDividerLocation();
+		subPanel.removeAll();
+		mainSplitPane.setRightComponent(titlePanel);
+		mainSplitPane.setDividerLocation(tempDividerLocation);
 	}
 }
