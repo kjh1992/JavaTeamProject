@@ -25,11 +25,8 @@ public class ClassViewer extends JFrame {
 	private TextPanel textPanel = new TextPanel();
 	private TablePanel tablePanel = new TablePanel();
 	private SubPanel subPanel = new SubPanel();
+	private TitlePanel titlePanel = new TitlePanel();
 	
-	private JPanel titlePanel = new JPanel(new BorderLayout());
-	private JLabel label1 = new JLabel("C++ Class Viewer  Ver.1.0", JLabel.CENTER);
-	private JLabel label2 = new JLabel("by Joohong Kim, Hyoenjin Kim", JLabel.CENTER);
-
 	
 	public ClassViewer() {
 		setTitle("C++ Class Viewer");
@@ -48,10 +45,6 @@ public class ClassViewer extends JFrame {
 		mainSplitPane.setDividerSize(5);
 		mainSplitPane.setDividerLocation(200);
 		mainSplitPane.setLeftComponent(subSplitPane); // 좌측에 트리 + 서브 뷰
-		label1.setFont(new Font("Serif", Font.BOLD, 36));
-		label2.setFont(new Font("Monospaced", Font.PLAIN, 20));
-		titlePanel.add(label1, "Center");
-		titlePanel.add(label2, "South");
 		mainSplitPane.setRightComponent(titlePanel); // 우측에 빈 패널
 		
 		add(mainSplitPane, "Center");
@@ -168,8 +161,8 @@ public class ClassViewer extends JFrame {
 	
 	// 텍스트 영역 패널 내부 클래스 정의
 	private class TextPanel extends JPanel implements DocumentListener {
-		Hashtable<MethodInfor, JScrollPane> hashtable = new Hashtable<MethodInfor, JScrollPane>();
-		MethodInfor currentMethod;
+		private Hashtable<MethodInfor, JScrollPane> hashtable = new Hashtable<MethodInfor, JScrollPane>();
+		private MethodInfor currentMethod;
 		
 		public TextPanel() {
 			setLayout(new BorderLayout());	
@@ -211,11 +204,11 @@ public class ClassViewer extends JFrame {
 	
 	// 테이블 패널 내부 클래스 정의
 	private class TablePanel extends JPanel {
-		String[] classAttributes = { "Name", "Type", "Access" };
-		String[] memberAttributes = { "Name", "Methods" };
-		DefaultTableModel classTableModel = new DefaultTableModel(classAttributes, 0);
-		DefaultTableModel memberTableModel = new DefaultTableModel(memberAttributes, 0);
-		JTable table = new JTable(classTableModel);
+		private String[] classAttributes = { "Name", "Type", "Access" };
+		private String[] memberAttributes = { "Name", "Methods" };
+		private DefaultTableModel classTableModel = new DefaultTableModel(classAttributes, 0);
+		private DefaultTableModel memberTableModel = new DefaultTableModel(memberAttributes, 0);
+		private JTable table = new JTable(classTableModel);
 		
 		public TablePanel() {
 			setLayout(new BorderLayout());
@@ -281,9 +274,9 @@ public class ClassViewer extends JFrame {
 	
 	// 서브 뷰 패널 내부 클래스 정의 (좌측 하단 영역)
 	private class SubPanel extends JPanel {
-		JPanel usePanel = new JPanel();
-		JLabel label = new JLabel("Use", JLabel.CENTER);
-		JPanel memberPanel = new JPanel();
+		private JPanel usePanel = new JPanel();
+		private JLabel label = new JLabel("Use", JLabel.CENTER);
+		private JPanel memberPanel = new JPanel();
 		
 		public SubPanel() {
 			setLayout(new FlowLayout(FlowLayout.LEADING));
@@ -314,6 +307,19 @@ public class ClassViewer extends JFrame {
 		}		
 	}
 	
+	// 타이틀 패널 내부 클래스 정의
+	private class TitlePanel extends JPanel {
+		private JLabel label1 = new JLabel("C++ Class Viewer  Ver.1.0", JLabel.CENTER);
+		private JLabel label2 = new JLabel("by Joohong Kim, Hyoenjin Kim", JLabel.CENTER);
+		
+		public TitlePanel() {
+			setLayout(new BorderLayout());
+			label1.setFont(new Font("Serif", Font.BOLD, 36));
+			label2.setFont(new Font("Monospaced", Font.PLAIN, 20));
+			add(label1, "Center");
+			add(label2, "South");
+		}
+	}
 	
 	// 클래스 관련 메소드들
 	public static void addClass(ClassInfor c) {

@@ -1,8 +1,8 @@
 package teamproject;
 
 public class ParameterInfor {
-	String type;
-	String name;
+	private String type;
+	private String name;
 	
 	public ParameterInfor(String type, String name) {
 		this.type = type;
@@ -25,7 +25,7 @@ public class ParameterInfor {
 	@Override
 	public boolean equals(Object o) {
 		ParameterInfor p = (ParameterInfor) o;
-		if (type.equals(p.getType()) && (name == null || name.equals(p.getName()))) return true;
+		if (type.equals(p.getType()) && (name == "" || name.equals(p.getName()))) return true;
 		else return false;
 	}
 }

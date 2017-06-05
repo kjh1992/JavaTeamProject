@@ -44,7 +44,7 @@ public class Parser {
 		
 		while (m.find()) {
 			from = m.end();
-			while (currentSource.charAt(from++) != '{');
+			while (currentSource.charAt(from) != '{') from++;
 			braceChecker = 1;
 			to = from;
 			while (braceChecker > 0) {
@@ -53,7 +53,8 @@ public class Parser {
 				else if (currentSource.charAt(to) == '}') braceChecker--;
 			}
 			declaration = m.group();
-			body = currentSource.substring(++from, to);
+			if (++from == to) body = "";
+			else body = currentSource.substring(from, to);
 			parseMethod(declaration, body);
 		}
 	}
@@ -74,7 +75,7 @@ public class Parser {
 		ClassViewer.addClass(c);
 	}
 	
-	// 멤버 선언 파싱 메서드
+	// 멤버 선언 파싱 메소드
 	private static void parseMember(ClassInfor c, String access, String declaration) {
 		String s = declaration.replace("()", "(void)");
 		Matcher m1 = Pattern.compile("^(?<name>~?\\w+)\\((?<parameter>.+)\\)").matcher(s);
@@ -98,7 +99,8 @@ public class Parser {
 		for (String s : splitedParameters) {
 			s = s.trim();
 			m = p.matcher(s);
-			if (m.find()) list.add(new ParameterInfor(m.group("type"), ""));
+//			if (m.find()) list.add(new ParameterInfor(m.group("type"), ""));
+			if (m.find()) list.add(new ParameterInfor(m.group("type"), m.group("name")));
 			else list.add(new ParameterInfor(s, ""));
 		}
 		return list;
@@ -141,7 +143,7 @@ public class Parser {
 			body = method.getBody();
 			// 해당 메소드의 바디 영역 교체
 			from = m.end();
-			while (s.charAt(from++) != '{');
+			while (s.charAt(from) != '{') from++;
 			braceChecker = 1;
 			to = from;
 			while (braceChecker > 0) {

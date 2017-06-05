@@ -19,10 +19,6 @@ public class MethodInfor {
 		this.parameterList = parameterList;
 	}
 	
-	public void addParameter(ParameterInfor p) {
-		parameterList.add(p);
-	}
-	
 	public void checkBody() { // 메소드 객체의 바디를 확인하여 멤버 리스트를 다시 채움
 		String[] bodySplit = body.split("[\\[\\](){}+\\-*/%=!;\\s]");
 		memberList.clear();
